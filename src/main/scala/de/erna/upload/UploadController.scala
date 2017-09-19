@@ -1,16 +1,18 @@
 package de.erna.upload
 
-import java.util
+import java.net.URI
 import javax.servlet.http.HttpServletRequest
 
 import com.typesafe.scalalogging.LazyLogging
 import de.erna.model.{UploadAnnouncement, UploadMetaData}
+import de.erna.storage.StoreService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
 
 @RestController
 @RequestMapping(Array("/upload"))
-class UploadController(@Autowired val uploadPreparer: UploadPreparer) extends LazyLogging {
+class UploadController( @Autowired val uploadPreparer: UploadPreparer,
+                        @Autowired val storeService: StoreService ) extends LazyLogging {
 
   @PostMapping
   def upload(@RequestBody uploadAnnouncement: UploadAnnouncement): UploadMetaData = {
@@ -19,9 +21,8 @@ class UploadController(@Autowired val uploadPreparer: UploadPreparer) extends La
   }
 
   @PostMapping( Array( "/{blobId}" ) )
-  def uploadFile( @PathVariable blobId: String, request: HttpServletRequest ): Unit = {
-    val buffer = new Array[ Byte ]( 65535 )
-    request.getInputStream.read( buffer )
-    logger.info( s"Upload to id $blobId: ${util.Arrays.toString( buffer )}" )
+  def uploadFile( @PathVariable blobId: String, request: HttpServletRequest ): String = {
+    logger.debug( s"Upload started for blob $blobId" )
+    storeService.store( UploadMetaData( "fooid", new URI( "foouri" ) ), request.getInputStream ).toString
   }
 }
