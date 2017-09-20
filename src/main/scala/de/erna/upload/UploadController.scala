@@ -1,10 +1,9 @@
 package de.erna.upload
 
-import java.net.URI
 import javax.servlet.http.HttpServletRequest
 
 import com.typesafe.scalalogging.LazyLogging
-import de.erna.model.{UploadAnnouncement, UploadMetaData}
+import de.erna.model.{UploadAnnouncement, UploadConfirmation}
 import de.erna.storage.StoreService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
@@ -15,14 +14,14 @@ class UploadController( @Autowired val uploadPreparer: UploadPreparer,
                         @Autowired val storeService: StoreService ) extends LazyLogging {
 
   @PostMapping
-  def upload(@RequestBody uploadAnnouncement: UploadAnnouncement): UploadMetaData = {
+  def upload( @RequestBody uploadAnnouncement: UploadAnnouncement ): UploadConfirmation = {
     logger.debug(s"An upload was announced: $uploadAnnouncement")
     uploadPreparer.prepareUpload(uploadAnnouncement)
   }
 
-  @PostMapping( Array( "/{blobId}" ) )
-  def uploadFile( @PathVariable blobId: String, request: HttpServletRequest ): String = {
-    logger.debug( s"Upload started for blob $blobId" )
-    storeService.store( UploadMetaData( "fooid", new URI( "foouri" ) ), request.getInputStream ).toString
+  @PostMapping( Array( "/{uploadId}" ) )
+  def uploadFile( @PathVariable uploadId: String, request: HttpServletRequest ): String = {
+    logger.debug( s"Upload started for blob $uploadId" )
+    storeService.store( uploadId, request.getInputStream ).toString
   }
 }
